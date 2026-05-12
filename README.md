@@ -6,20 +6,20 @@ A full-stack web application developed using Spring Boot, Thymeleaf, and MySQL t
 
 ## Features
 
-### 🌐 Public Website
+### Public Website
 - View salon information, services, and products
 - Portfolio page
 - User registration and login
 - Language switch (English / Portuguese)
 
-### 👤 Customer Area
+### Customer Area
 - Book appointments with business hours validation
 - View and cancel appointments
 - Shopping cart
 - Place orders and view order history
 - Profile management
 
-### 🛠️ Administrator Portal
+### Administrator Portal
 - Manage services and products (CRUD + image upload)
 - Manage customers
 - Manage appointments
@@ -28,7 +28,7 @@ A full-stack web application developed using Spring Boot, Thymeleaf, and MySQL t
 
 ---
 
-## 🧰 Technologies Used
+## Technologies Used
 
 - Java, Spring Boot, Spring MVC, Spring Security
 - Thymeleaf, HTML, CSS, JavaScript, Bootstrap
@@ -37,7 +37,7 @@ A full-stack web application developed using Spring Boot, Thymeleaf, and MySQL t
 
 ---
 
-## ⚙️ How to Run Locally
+## How to Run Locally
 
 1. Clone repository:
    git clone https://github.com/tdorigan/fiuza-salon-management-system.git
@@ -56,7 +56,7 @@ A full-stack web application developed using Spring Boot, Thymeleaf, and MySQL t
 
 ---
 
-## 🔐 Demo Accounts
+## Demo Accounts
 
 Administrator is automatically created when the application starts:
 
@@ -67,12 +67,12 @@ Customers can register via the application.
 
 ---
 
-## 🌍 Live Demo
+## Live Demo
 
 (To be added after deployment)
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Tiago Dorigan
