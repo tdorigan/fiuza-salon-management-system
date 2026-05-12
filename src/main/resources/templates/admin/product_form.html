@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{${pageTitle}}">Product</title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+
+        <!--page header, title and back button-->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="m-0" th:text="#{${pageTitle}}">Product</h2>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/manage_products}" th:text="#{actions.back}">Back</a>
+        </div>
+
+        <!--shows error message if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--form, using the product object received from the controller-->
+        <form th:action="@{/admin/products/save}" method="post" enctype="multipart/form-data" th:object="${product}" class="card">
+            <div class="card-body">
+
+                <!--hidden id field-->
+                <input type="hidden" th:field="*{id}" />
+
+                <!--name-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.product.name}">Name</label>
+                    <input type="text" class="form-control" th:field="*{name}" maxlength="100" required>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+
+                <!--description-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.product.description}">Description</label>
+                    <textarea class="form-control" rows="3" th:field="*{description}" maxlength="500"></textarea>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                </div>
+
+                <!--price-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.product.price}">Price</label>
+                    <input type="number" step="0.01" min="0" max="99999999.99" class="form-control" th:field="*{price}" required>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                </div>
+
+                <!--quantity in stock-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.product.quantityInStock}">Quantity in Stock</label>
+                    <input type="number" min="0" max="99999" class="form-control" th:field="*{quantityInStock}" required>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('quantityInStock')}" th:errors="*{quantityInStock}"></div>
+                </div>
+
+                <!--product image-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.product.image}">Product Image</label>
+                    <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" class="form-control">
+
+                    <div class="mt-3" th:if="${product.imageFileName != null}">
+
+                        <p class="text-muted mb-1" th:text="#{page.product.currentImage}">Current image:</p>
+
+                        <img th:src="@{'/uploads/products/' + ${product.imageFileName}}"
+                             class="img-thumbnail"
+                             style="max-width: 180px;"
+                             alt="Product image">
+
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="removeImage" id="removeImage">
+                            <label class="form-check-label" for="removeImage"
+                                   th:text="#{page.product.removeImage}">
+                                Remove current image
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!--active-->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" th:field="*{active}" id="active">
+                    <label class="form-check-label" for="active" th:text="#{page.product.active}">Active</label>
+                </div>
+
+                <!--save button-->
+                <button type="submit" class="btn btn-primary" th:text="#{actions.save}">Save</button>
+
+            </div>
+        </form>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>

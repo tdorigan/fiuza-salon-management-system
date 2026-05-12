@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.manageProducts}"></title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+
+        <!--header, title and create button-->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 th:text="#{navigation.manageProducts}">Manage Products</h2>
+
+            <a class="btn btn-primary" th:href="@{/admin/products/new}" th:text="#{actions.create}">
+                Create
+            </a>
+        </div>
+
+        <!--flash success message, only show if exists-->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="#{${message}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--flash error message, only show if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--checking if the list is empty to display a message -->
+        <div th:if="${#lists.isEmpty(listProducts)}" class="alert alert-info text-center">
+            <span th:text="#{page.products.empty}">No products registered yet.</span>
+        </div>
+
+        <!--only if the list is not empty will show the products-->
+        <div th:if="${!#lists.isEmpty(listProducts)}">
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <!--table header-->
+                    <thead class="table-dark">
+                    <tr>
+                        <th th:text="#{page.product.id}">Id</th>
+                        <th th:text="#{page.product.image}">Image</th>
+                        <th th:text="#{page.product.name}">Name</th>
+                        <th th:text="#{page.product.description}">Description</th>
+                        <th th:text="#{page.product.price}">Price</th>
+                        <th th:text="#{page.product.quantityInStock}">Quantity in Stock</th>
+                        <th th:text="#{page.product.active}">Active</th>
+                        <th th:text="#{page.product.actions}">Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <!--table rows, getting listProducts from the controller-->
+                    <tr th:each="product : ${listProducts}">
+
+                        <td th:text="${product.id}"></td>
+
+                        <td>
+                            <img th:if="${product.imageFileName != null}"
+                                 th:src="@{'/uploads/products/' + ${product.imageFileName}}"
+                                 class="admin-product-thumbnail"
+                                 th:alt="${product.name}">
+
+                            <i th:if="${product.imageFileName == null}"
+                               class="fa-regular fa-image text-muted fa-2x"></i>
+                        </td>
+
+                        <td th:text="${product.name}"></td>
+                        <td th:text="${product.description}"></td>
+                        <td th:text="${product.price}"></td>
+                        <td th:text="${product.quantityInStock}"></td>
+
+                        <!--product active toggle-->
+                        <td>
+                            <div class="d-flex align-items-center justify-content-center flex-nowrap">
+                                <form th:if="${product.active}"
+                                      th:action="@{'/admin/products/toggleActive/' + ${product.id}}"
+                                      method="post"
+                                      class="d-inline">
+                                    <button type="submit" class="btn p-0 border-0 bg-transparent" th:title="#{actions.disable}">
+                                        <i class="fas fa-check-circle fa-2x icon-green"></i>
+                                    </button>
+                                </form>
+                                <form th:if="${!product.active}"
+                                      th:action="@{'/admin/products/toggleActive/' + ${product.id}}"
+                                      method="post"
+                                      class="d-inline">
+                                    <button type="submit" class="btn p-0 border-0 bg-transparent" th:title="#{actions.enable}">
+                                        <i class="fas fa-circle fa-2x icon-dark"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+
+                        <!--actions-->
+                        <td>
+                            <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
+                                <!--edit-->
+                                <a th:title="#{actions.edit}" th:href="@{'/admin/products/edit/' + ${product.id}}">
+                                    <i class="fas fa-edit fa-2x icon-green"></i>
+                                </a>
+
+                                <!--delete, href is blank because it will be set on showDeleteModal function on the modal yes button-->
+                                <!--i'm also passing the link with the id as attribute data-url-->
+                                <a th:title="#{actions.delete}"
+                                   href="#"
+                                   th:attr="data-url=@{'/admin/products/delete/' + ${product.id}}"
+                                   onclick="showDeleteModal(this); return false;">
+                                    <i class="fas fa-trash fa-2x icon-dark"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- hidden element just to store the tranlsated message -->
+        <span id="msgDeleteConfirm" th:text="#{confirm.deleteProduct}" style="display:none;"></span>
+
+        <!-- confirmation modal -->
+        <div class="modal fade text-center" id="confirmModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" th:text="#{modal.delete.title}">Delete Confirmation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <span id="confirmText"></span>
+                    </div>
+                    <div class="modal-footer">
+                        <form id="confirmForm" method="post" action="">
+                            <!--i need to manually add the csrf hidden field because the form has no action, so thymeleaf won't add it automatically-->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <button type="submit" class="btn btn-success">
+                                <span th:text="#{actions.yes}">Yes</span>
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                            <span th:text="#{actions.no}">No</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+    <script>
+        //show modal to confirm deletion
+        function showDeleteModal(link) {
+
+            /*getting the data-url attribute*/
+            const url = link.getAttribute("data-url");
+
+            /*getting the translated message from the hidden span*/
+            const confirmMessage = document.getElementById("msgDeleteConfirm").innerText;
+
+            /*put the translated message to the modal*/
+            document.getElementById("confirmText").innerText = confirmMessage;
+
+            /*set the action of the modal yes button*/
+            document.getElementById("confirmForm").setAttribute("action", url);
+
+            /*show modal*/
+            const modal = new bootstrap.Modal(
+                document.getElementById("confirmModal")
+            );
+            modal.show();
+        }
+    </script>
+
+</body>
+</html>

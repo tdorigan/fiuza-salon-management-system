@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.ordersReport}"></title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+        <h2 th:text="#{navigation.ordersReport}"></h2>
+
+        <!--flash error message, only show if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- filters section-->
+        <div class="card mb-3">
+
+            <!--filters form, it calls the same get mapping from when loading the page from the menu (no filters)-->
+            <form th:action="@{/admin/reports/orders}" method="get">
+                <div class="card-body">
+
+                    <div class="row g-3 align-items-end">
+
+                        <!--start date-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.startDate}">Start Date</label>
+                            <input th:value="${strStartDate}" name="strStartDate" type="date" class="form-control"
+                                   min="2000-01-01"
+                                   max="2100-12-31">
+                        </div>
+
+                        <!--end date-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.endDate}">End Date</label>
+                            <input th:value="${strEndDate}" name="strEndDate" type="date" class="form-control"
+                                   min="2000-01-01"
+                                   max="2100-12-31">
+                        </div>
+
+                        <!--status-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.status}">Status</label>
+
+                            <!--it gets a list of statuses via parameter and adds it to a dropdown-->
+                            <!--name="status" so i can get the selected status on the controller-->
+                            <select class="form-select" name="status">
+                                <!--empty option indicating to choose one-->
+                                <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}" th:text="#{reports.filter.status.all}"></option>
+                                <!--for each service on the list it adds an option-->
+                                <option th:each="orderStatus : ${statuses}" th:value="${orderStatus.name}" th:text="${orderStatus.name}"
+                                        th:selected="${orderStatus.name == selectedStatus}"></option>
+                            </select>
+                        </div>
+
+                        <!--customer name or email-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.customerNameOrEmail}">Customer name or email</label>
+                            <input name="customerNameOrEmail" th:value="${customerNameOrEmail}" type="text" maxlength="100" class="form-control">
+                        </div>
+
+                        <!--buttons-->
+                        <div class="col-md-4 d-flex gap-2">
+                            <!--clear filters button-->
+                            <a class="btn btn-outline-secondary" th:href="@{/admin/reports/orders}" th:text="#{actions.clearFilters}">Clear Filters</a>
+
+                            <!--generate button, sending value true to know on the controller when the button was clicked-->
+                            <button name="btnGenerate" value="true" type="submit" class="btn btn-primary" th:text="#{actions.generate}">Generate</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!--totals section-->
+        <div th:if="${reportGenerated}" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4 mb-3">
+
+            <div class="col">
+                <div class="card text-bg-primary h-100">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{reports.totals.totalOrders} + ': ' + ${totalOrders}">Total Orders</h4>
+                        <h4 class="card-text" th:text="#{reports.totals.value} + ': ' + ${totalOrdersValue}"></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card text-bg-danger h-100">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{reports.totals.cancelled} + ': ' + ${totalCancelled}">Cancelled</h4>
+                        <h4 class="card-text" th:text="#{reports.totals.lostValue} + ': ' + ${totalCancelledValue}"></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card text-bg-info h-100">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{reports.totals.draft} + ': ' + ${totalDraft}">Draft</h4>
+                        <h4 class="card-text" th:text="#{reports.totals.draftValue} + ': ' + ${totalDraftValue}"></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card text-bg-warning h-100">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{reports.totals.pending} + ': ' + ${totalPending}">Pending</h4>
+                        <h4 class="card-text" th:text="#{reports.totals.pendingValue} + ': ' + ${totalPendingValue}"></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card text-bg-success h-100">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="#{reports.totals.paid} + ': ' + ${totalPaid}">Paid</h4>
+                        <h4 class="card-text" th:text="#{reports.totals.revenue} + ': ' + ${totalPaidValue}"></h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!--data section-->
+        <!--only if the list is not empty will show the orders-->
+        <div class="accordion" id="ordersReportAccordion" th:if="${!#lists.isEmpty(orderReportList)}">
+
+            <!--desktop column labels-->
+            <div class="row g-2 px-3 py-2 mb-2 fw-bold text-muted small d-none d-lg-flex">
+                <div class="col-lg-1" th:text="#{order.id}"></div>
+                <div class="col-lg-2" th:text="#{order.customer.fullName}"></div>
+                <div class="col-lg-3" th:text="#{order.customer.email}"></div>
+                <div class="col-lg-2" th:text="#{order.dateTime}"></div>
+                <div class="col-lg-2" th:text="#{order.status}"></div>
+                <div class="col-lg-2" th:text="#{order.total}"></div>
+            </div>
+
+            <div class="accordion-item mb-3" th:each="order : ${orderReportList}">
+
+                <!-- accordion header -->
+                <h2 class="accordion-header" th:id="'heading-order-' + ${order.id}">
+
+                    <div class="accordion-button collapsed"
+                         role="button"
+                         tabindex="0"
+                         th:aria-controls="'collapse-order-' + ${order.id}"
+                         aria-expanded="false"
+                         th:onclick="'toggleOrderItems(' + ${order.id} + ', this)'">
+
+                        <div class="container-fluid px-0">
+                            <div class="row g-2 align-items-center w-100">
+
+                                <!--order id-->
+                                <div class="col-lg-1">
+                                    <strong class="d-lg-none" th:text="#{order.id}"></strong>
+                                    <span th:text="${order.id}"></span>
+                                </div>
+
+                                <!--customer full name-->
+                                <div class="col-lg-2">
+                                    <strong class="d-lg-none" th:text="#{order.customer.fullName}"></strong>
+                                    <span th:text="${order.customer.fullName}"></span>
+                                </div>
+
+                                <!--customer email-->
+                                <div class="col-lg-3">
+                                    <strong class="d-lg-none" th:text="#{order.customer.email}"></strong>
+                                    <span th:text="${order.customer.email}"></span>
+                                </div>
+
+                                <!--date time-->
+                                <div class="col-lg-2">
+                                    <strong class="d-lg-none" th:text="#{order.dateTime}"></strong>
+                                    <span th:text="${#temporals.format(order.dateTime, 'dd/MM/yyyy HH:mm:ss')}"></span>
+                                </div>
+
+                                <!--status-->
+                                <div class="col-lg-2">
+                                    <strong class="d-lg-none" th:text="#{order.status}"></strong>
+                                    <span th:text="${order.status}"></span>
+                                </div>
+
+                                <!--total-->
+                                <div class="col-lg-2">
+                                    <strong class="d-lg-none" th:text="#{order.total}"></strong>
+                                    <span th:text="${order.totalOrder}"></span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </h2>
+
+                <!-- accordion body -->
+                <div class="accordion-collapse collapse"
+                     th:id="'collapse-order-' + ${order.id}"
+                     th:aria-labelledby="'heading-order-' + ${order.id}">
+
+                    <div class="accordion-body">
+
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th th:text="#{order.item.product}"></th>
+                                    <th class="text-center" th:text="#{order.item.quantity}"></th>
+                                    <th class="text-end" th:text="#{order.item.unitPrice}"></th>
+                                    <th class="text-end" th:text="#{order.item.subtotal}"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!--each item in a row of the secondary table-->
+                                <tr th:each="item : ${order.items}">
+                                    <td th:text="${item.product.name}"></td>
+                                    <td class="text-center" th:text="${item.quantity}"></td>
+                                    <td class="text-end" th:text="${item.unitPriceAtPurchase}"></td>
+                                    <td class="text-end" th:text="${item.quantity * item.unitPriceAtPurchase}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+    <script>
+
+        //to expand/collapse the order items when clicking the order header
+        function toggleOrderItems(orderId, headerElement) {
+
+            //get the collapse element (accordion body) using the order id
+            const collapseElement = document.getElementById("collapse-order-" + orderId);
+
+            //get or create a bootstrap collapse instance for that element
+            const collapseInstance = bootstrap.Collapse.getOrCreateInstance(collapseElement, {
+                //so it won't automatically open/close when created
+                toggle: false
+            });
+
+            //toggle (expand/collapse) instance
+            collapseInstance.toggle();
+
+            //toggle the collapsed class on the header, to control the arrow direction
+            headerElement.classList.toggle("collapsed");
+
+            //get the current aria-expanded value (accessibility attribute)
+            const isExpanded = headerElement.getAttribute("aria-expanded") === "true";
+
+            //updates the aria-expanded to the opposite value
+            headerElement.setAttribute("aria-expanded", !isExpanded);
+
+        }
+
+    </script>
+
+</body>
+</html>

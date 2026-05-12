@@ -1,0 +1,235 @@
+<!--this is a fragment template for the navbar so i can put it in all the pages via fragment replace-->
+<div th:fragment="fragmentNavbar">
+    <nav class="navbar navbar-expand-xl navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-semibold" th:href="@{/}" th:text="#{site.title}">Fiuza</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbar"
+                    aria-controls="topNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="topNavbar">
+
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                    <!--public menu options, always visible-->
+                    <!--Home-->
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:href="@{/}"
+                           th:classappend="${currentPath == '/'} ? ' active' : ''"
+                           th:text="#{navigation.home}">Home</a>
+                    </li>
+
+                    <!--Services-->
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:href="@{/public/services}"
+                           th:classappend="${currentPath == '/public/services'} ? ' active' : ''"
+                           th:text="#{navigation.services}">Services</a>
+                    </li>
+
+                    <!--Products-->
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:href="@{/public/products}"
+                           th:classappend="${currentPath == '/public/products'} ? ' active' : ''"
+                           th:text="#{navigation.products}">Products</a>
+                    </li>
+
+                    <!--Portfolio-->
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:href="@{/public/portfolio}"
+                           th:classappend="${currentPath == '/public/portfolio'} ? ' active' : ''"
+                           th:text="#{navigation.portfolio}">Portfolio</a>
+                    </li>
+
+                    <!-- menu option only visible for CUSTOMERS -->
+                    <!--Appointments-->
+                    <li class="nav-item" sec:authorize="hasRole('CUSTOMER')">
+                        <a class="nav-link"
+                           th:href="@{/customer/appointments}"
+                           th:classappend="${#strings.startsWith(currentPath, '/customer/appointments')} ? ' active' : ''"
+                           th:text="#{navigation.appointments}">Appointments</a>
+                    </li>
+
+                    <!--Current order (shopping cart)-->
+                    <li class="nav-item" sec:authorize="hasRole('CUSTOMER')">
+                        <a class="nav-link"
+                           th:href="@{/customer/current_order}"
+                           th:classappend="${#strings.startsWith(currentPath, '/customer/current_order')} ? ' active' : ''"
+                           th:text="#{navigation.currentOrder}">Cart</a>
+                    </li>
+
+                    <!--Orders-->
+                    <li class="nav-item" sec:authorize="hasRole('CUSTOMER')">
+                        <a class="nav-link"
+                           th:href="@{/customer/orders}"
+                           th:classappend="${currentPath == '/customer/orders'} ? ' active' : ''"
+                           th:text="#{navigation.orders}">Orders</a>
+                    </li>
+
+                    <!-- menu option only visible for ADMIN -->
+                    <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+
+                        <!--Manage-->
+                        <a class="nav-link dropdown-toggle"
+                           th:classappend="${#strings.startsWith(currentPath, '/admin/manage_') or #strings.startsWith(currentPath, '/admin/products') or #strings.startsWith(currentPath, '/admin/services')} ? ' active' : ''"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false"
+                           th:text="#{navigation.manage}">Manage</a>
+
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <!--Manage Services-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/manage_services}"
+                                   th:classappend="${#strings.startsWith(currentPath, '/admin/manage_services') or #strings.startsWith(currentPath, '/admin/services')} ? ' active' : ''"
+                                   th:text="#{navigation.services}">Services</a>
+                            </li>
+
+                            <!--Manage Products-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/manage_products}"
+                                   th:classappend="${#strings.startsWith(currentPath, '/admin/manage_products') or #strings.startsWith(currentPath, '/admin/products')} ? ' active' : ''"
+                                   th:text="#{navigation.products}">Products</a>
+                            </li>
+
+                            <!--Manage Appointments-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/manage_appointments}"
+                                   th:classappend="${currentPath == '/admin/manage_appointments'} ? ' active' : ''"
+                                   th:text="#{navigation.appointments}">Appointments</a>
+                            </li>
+
+                            <!--Manage Orders-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/manage_orders}"
+                                   th:classappend="${currentPath == '/admin/manage_orders'} ? ' active' : ''"
+                                   th:text="#{navigation.orders}">Orders</a>
+                            </li>
+
+                            <!--Manage Customers-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/manage_customers}"
+                                   th:classappend="${currentPath == '/admin/manage_customers'} ? ' active' : ''"
+                                   th:text="#{navigation.customers}">Customers</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- menu option only visible for ADMIN -->
+                    <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+
+                        <!--Reports-->
+                        <a class="nav-link dropdown-toggle"
+                           th:classappend="${#strings.startsWith(currentPath, '/admin/reports')} ? ' active' : ''"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false"
+                           th:text="#{navigation.reports}">Reports</a>
+
+                        <ul class="dropdown-menu dropdown-menu-dark">
+
+                            <!--Appointments report-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/reports/appointments}"
+                                   th:classappend="${currentPath == '/admin/reports/appointments'} ? ' active' : ''"
+                                   th:text="#{navigation.appointments}">Appointments</a>
+                            </li>
+
+                            <!--Orders report-->
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{/admin/reports/orders}"
+                                   th:classappend="${currentPath == '/admin/reports/orders'} ? ' active' : ''"
+                                   th:text="#{navigation.orders}">Orders</a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                    <!-- menu options visible only to not authenticated users (visitors) -->
+                    <!--Login-->
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="nav-link"
+                           th:href="@{/public/login}"
+                           th:classappend="${currentPath == '/public/login'} ? ' active' : ''"
+                           th:text="#{navigation.login}">
+                            Login
+                        </a>
+                    </li>
+
+                    <!--Register-->
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="nav-link"
+                           th:href="@{/public/register}"
+                           th:classappend="${currentPath == '/public/register'} ? ' active' : ''"
+                           th:text="#{navigation.register}">
+                            Register
+                        </a>
+                    </li>
+
+                    <!-- Logout menu option, visible only to authenticated users (customer / admin) -->
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form method="post" th:action="@{/logout}">
+                            <button class="nav-link btn btn-link text-start" type="submit" th:text="#{navigation.logout}">
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+
+                </ul>
+
+                <!-- if authenticated show logged in username as profile link -->
+                <div class="navbar-text text-white me-lg-3 mb-2 mb-lg-0 user-email"
+                     sec:authorize="isAuthenticated()">
+
+                    <a class="nav-link user-profile-link"
+                       th:href="@{/profile}"
+                       th:classappend="${currentPath == '/profile'} ? ' active' : ''"
+                       th:title="#{profile.title}">
+
+                        <span th:text="#{navigation.welcome}">Hello</span>,&nbsp;
+                        <span class="user-profile-name"
+                              th:text="${loggedUserFullName}"></span>
+                    </a>
+                </div>
+
+                <!--language toggler-->
+                <div class="d-flex gap-2 align-items-center ms-2">
+
+                    <!--English-->
+                    <a th:href="@{?lang=en}"
+                       th:classappend="${#locale.language == 'en'} ? ' active-lang' : ''"
+                       th:title="#{lang.en}"
+                       class="lang-flag">
+                        <img src="https://flagcdn.com/w40/ie.png" alt="English">
+                    </a>
+
+                    <!--Portuguese-->
+                    <a th:href="@{?lang=pt_BR}"
+                       th:classappend="${#locale.toString() == 'pt_BR'} ? ' active-lang' : ''"
+                       th:title="#{lang.pt}"
+                       class="lang-flag">
+                        <img src="https://flagcdn.com/w40/br.png" alt="Português">
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </nav>
+</div>

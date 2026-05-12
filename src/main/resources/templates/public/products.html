@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.products}"></title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+
+        <!--header-->
+        <div class="mb-4 text-center">
+            <h2 th:text="#{public.products.title}">Products</h2>
+            <p class="text-muted" th:text="#{public.products.subtitle}">
+                Explore our products.
+            </p>
+        </div>
+
+        <!--flash success message, only show if exists-->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="#{${message}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--flash error message, only show if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--checking if the list is empty to display a message -->
+        <div th:if="${#lists.isEmpty(listProducts)}" class="alert alert-info text-center">
+            <span th:text="#{public.products.empty}">No products available at the moment.</span>
+        </div>
+
+        <!--only if the list is not empty will show the cards-->
+        <div class="row g-3" th:if="${!#lists.isEmpty(listProducts)}">
+
+            <!--for each product in the list. list is passed via parameter by controller-->
+            <div class="col-12 col-sm-6 col-lg-4" th:each="product : ${listProducts}">
+
+                <!--each product is a card-->
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+
+                        <!--product image-->
+                        <div class="text-center my-3">
+                            <img th:if="${product.imageFileName != null}"
+                                 th:src="@{'/uploads/products/' + ${product.imageFileName}}"
+                                 class="img-fluid product-card-image"
+                                 th:alt="${product.name}">
+
+                            <!--shows placeholder icon if product not available-->
+                            <i th:if="${product.imageFileName == null}"
+                               class="fa-regular fa-image fa-10x icon-dark"></i>
+                        </div>
+
+                        <!--divide card content in lines-->
+                        <ul class="list-group list-group-flush flex-grow-1">
+
+                            <!--title and description-->
+                            <li class="list-group-item text-center">
+                                <h5 class="card-title" th:text="${product.name}">Product Name</h5>
+                                <p class="card-text text-muted" th:text="${product.description}">Description...</p>
+                            </li>
+
+                            <!--price-->
+                            <li class="list-group-item text-center">
+                                <strong th:text="#{public.products.price}">Price:</strong>
+                                <span th:text="${product.price}">0</span>
+                            </li>
+
+                            <!--quantity in stock-->
+                            <li class="list-group-item text-center">
+                                <strong th:text="#{page.product.quantityInStock} + ':'">Quantity in stock:</strong>
+                                <span th:text="${product.quantityInStock}">0</span>
+                            </li>
+
+                            <!--buy button-->
+                            <li class="list-group-item text-center">
+                                <form th:action="@{'/customer/order/add/' + ${product.id}}" method="post">
+                                    <button type="submit" class="btn btn-primary w-100" th:text="#{actions.buy}">
+                                        Buy
+                                    </button>
+                                </form>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>

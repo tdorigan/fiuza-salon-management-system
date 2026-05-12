@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{${pageTitle}}">Appointment</title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+
+        <!--page header, title and back button-->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="m-0" th:text="#{${pageTitle}}">Appointment</h2>
+            <a class="btn btn-outline-secondary" th:href="@{/customer/appointments}" th:text="#{actions.back}">Back</a>
+        </div>
+
+        <!--flash error message, only show if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--form, using the service object received from the controller-->
+        <form th:action="@{/customer/appointments/save}" method="post" th:object="${appointment}" class="card">
+            <div class="card-body">
+
+                <!--hidden id field-->
+                <input type="hidden" th:field="*{id}" />
+
+                <!--service-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{appointment.service}">Service</label>
+
+                    <!--it gets a list of active services via parameter and adds it to a dropdown-->
+                    <!--name="serviceId" so i can get the selected service on the PostMapping on the controller-->
+                    <select class="form-select" id="serviceId" name="serviceId" required>
+                        <!--empty option indicating to choose one-->
+                        <option value="" th:text="#{appointment.service.choose}">-- Choose --</option>
+                        <!--for each service on the list it adds an option, and selects one if selectedServiceId parameter exists-->
+                        <option th:each="service : ${listServices}"
+                                th:value="${service.id}"
+                                th:text="${service.name + ' - ' + service.estimatedTimeMinutesDescription}"
+                                th:selected="${selectedServiceId != null and selectedServiceId == service.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <!--date-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.appointment.date}">Date</label>
+                    <!--getting min a max dates from the controller-->
+                    <input type="date"
+                           class="form-control"
+                           id="appointmentDate"
+                           name="date"
+                           th:value="${appointment.date != null ? #temporals.format(appointment.date, 'yyyy-MM-dd') : ''}"
+                           th:min="${minDate}"
+                           th:max="${maxDate}"
+                           required>
+                </div>
+
+                <!--time-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.appointment.time}">Time</label>
+                    <select class="form-select" id="appointmentTime" name="time" required>
+                        <option value="" th:text="#{appointment.time.selectServiceDateFirst}">
+                            Select a service and date first
+                        </option>
+                    </select>
+                    <input type="hidden"
+                           id="previousSelectedTime"
+                           th:value="${appointment.time != null ? #temporals.format(appointment.time, 'HH:mm') : ''}">
+                </div>
+
+                <!--notes-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{page.appointment.notes}">Notes</label>
+                    <textarea class="form-control" rows="3" th:field="*{notes}" maxlength="500"></textarea>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('notes')}" th:errors="*{notes}"></div>
+                </div>
+
+                <!--save button-->
+                <button type="submit" class="btn btn-primary" th:text="#{actions.save}">Save</button>
+
+            </div>
+        </form>
+
+        <!-- hidden elements just to store the translated messages -->
+        <span id="msgSelectServiceDateFirst" th:text="#{appointment.time.selectServiceDateFirst}" style="display:none;"></span>
+        <span id="msgLoadingTimes" th:text="#{appointment.time.loading}" style="display:none;"></span>
+        <span id="msgSelectAvailableTime" th:text="#{appointment.time.selectAvailable}" style="display:none;"></span>
+        <span id="msgNoAvailableTimes" th:text="#{appointment.time.noneAvailable}" style="display:none;"></span>
+        <span id="msgErrorLoadingTimes" th:text="#{appointment.time.errorLoading}" style="display:none;"></span>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+    <script th:inline="javascript">
+
+        //get the service dropdown element
+        const serviceSelect = document.getElementById("serviceId");
+
+        //get the date input element
+        const dateInput = document.getElementById("appointmentDate");
+
+        //get the time dropdown element
+        const timeSelect = document.getElementById("appointmentTime");
+
+        //get the previously selected time, if the form was reloaded after a backend validation error
+        const previousSelectedTime = document.getElementById("previousSelectedTime").value;
+
+        //translated message: select service and date first
+        const messageSelectServiceDateFirst = document.getElementById("msgSelectServiceDateFirst").innerText;
+
+        //translated message: loading available times
+        const messageLoadingTimes = document.getElementById("msgLoadingTimes").innerText;
+
+        //translated message: select available time
+        const messageSelectAvailableTime = document.getElementById("msgSelectAvailableTime").innerText;
+
+        //translated message: no available times
+        const messageNoAvailableTimes = document.getElementById("msgNoAvailableTimes").innerText;
+
+        //translated message: error loading times
+        const messageErrorLoadingTimes = document.getElementById("msgErrorLoadingTimes").innerText;
+
+        //function to reset the time dropdown with one message
+        function resetTimeDropdown(message) {
+
+            //clear all current options from the time dropdown
+            timeSelect.innerHTML = "";
+
+            //create a new option
+            const option = document.createElement("option");
+
+            //set empty value so the form cannot be submitted as a valid time
+            option.value = "";
+
+            //set the visible text
+            option.textContent = message;
+
+            //add the option to the dropdown
+            timeSelect.appendChild(option);
+
+            //disable the dropdown until valid options are loaded
+            timeSelect.disabled = true;
+        }
+
+        //function to load available times from the backend API
+        function loadAvailableTimes() {
+
+            //get selected service id
+            const serviceId = serviceSelect.value;
+
+            //get selected date
+            const date = dateInput.value;
+
+            //if service or date is missing, reset the dropdown
+            if (!serviceId || !date) {
+                resetTimeDropdown(messageSelectServiceDateFirst);
+                return;
+            }
+
+            //show loading message while calling the backend
+            resetTimeDropdown(messageLoadingTimes);
+
+            //build the API URL with query parameters
+            const url = `/customer/appointments/availableTimes?serviceId=${serviceId}&date=${date}`;
+
+            //call the backend API
+            fetch(url)
+                .then(response => {
+
+                    //if the HTTP response is not successful, for example 500, stop here
+                    if (!response.ok) {
+                        throw new Error("HTTP error " + response.status);
+                    }
+
+                    //if response is ok, convert response body to JSON
+                    return response.json();
+
+                })
+
+                //handle the list of times returned from the backend
+                .then(times => {
+
+                    //clear the dropdown
+                    timeSelect.innerHTML = "";
+
+                    //if no times were returned, show no available times message
+                    if (times.length === 0) {
+                        resetTimeDropdown(messageNoAvailableTimes);
+                        return;
+                    }
+
+                    //create the default "select available time" option
+                    const defaultOption = document.createElement("option");
+
+                    //empty value so user must choose a real time
+                    defaultOption.value = "";
+
+                    //visible text
+                    defaultOption.textContent = messageSelectAvailableTime;
+
+                    //add default option to the dropdown
+                    timeSelect.appendChild(defaultOption);
+
+                    //loop through all available times returned by the API
+                    times.forEach(time => {
+
+                        //create an option for each available time
+                        const option = document.createElement("option");
+
+                        //value submitted to Spring Boot
+                        option.value = time;
+
+                        //text shown to the user
+                        option.textContent = time;
+
+                        //if this time was selected before a backend error, select it again
+                        if (previousSelectedTime === time) {
+                            option.selected = true;
+                        }
+
+                        //add the option to the dropdown
+                        timeSelect.appendChild(option);
+                    });
+
+                    //enable the dropdown after loading valid options
+                    timeSelect.disabled = false;
+                })
+
+                //handle unexpected errors when calling the API
+                .catch(error => {
+
+                    //log error in browser console for debugging
+                    console.error("Error loading available times:", error);
+
+                    //show error message in dropdown
+                    resetTimeDropdown(messageErrorLoadingTimes);
+                });
+        }
+
+        //when the user changes the selected service, reload available times
+        serviceSelect.addEventListener("change", loadAvailableTimes);
+
+        //when the user changes the selected date, reload available times
+        dateInput.addEventListener("change", loadAvailableTimes);
+
+        //when the page loads, try to load available times
+        //this is important after backend validation errors, because service/date may already be filled
+        loadAvailableTimes();
+
+    </script>
+
+</body>
+</html>

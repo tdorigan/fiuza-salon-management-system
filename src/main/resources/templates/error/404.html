@@ -1,0 +1,32 @@
+<!--template for 404 error so it won't give the Whitelabel Error Page. If a 404 error occurs spring automatically look for templates/error/404.html so it shows the template -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{site.title}">Fiuza</title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+        <h1 class="mb-3" th:text="#{error.404.title}">Page not found</h1>
+        <p th:text="#{error.404.message}">The page you are looking for does not exist.</p>
+
+        <a class="btn btn-primary" th:href="@{/}" th:text="#{error.backHome}">Back to home page</a>
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>

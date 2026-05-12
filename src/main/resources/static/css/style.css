@@ -1,0 +1,143 @@
+*.icon-white{color:white}
+*.icon-silver{color:silver}
+*.icon-green{color:green}
+*.icon-dark{color:gray}
+*.icon-red{color:red}
+
+body{
+    background-color: #FFF8F0;
+
+    /*makes the body as tall as the viewport (screen height), so the footer can stick to the bottom on short pages*/
+    min-height: 100vh;
+    /*turns the body into a flex container, to allow control vertial layout (navbar, main, footer)*/
+    display: flex;
+    /*stacks children vertically instead of horizontally, so elements follow top to bottom (navbar, main, footer)*/
+    flex-direction: column;
+}
+
+main {
+    /*makes the main content expand and take all available space, pushing footer down on short pages*/
+    flex: 1;
+}
+
+.user-email {
+    /*limits the maximum width of the user name area in the navbar*/
+    max-width: 300px;
+}
+
+.user-profile-link {
+
+    /*makes the link behave like a flex container for alignment*/
+    display: flex;
+
+    /*aligns text vertically centered*/
+    align-items: center;
+
+    /*prevents it from exceeding the parent width*/
+    max-width: 100%;
+
+    /*hides overflowed content (needed for ellipsis to work)*/
+    overflow: hidden;
+}
+
+.user-profile-name {
+
+    /*hides overflowed text*/
+    overflow: hidden;
+
+    /*adds "..." when text is too long*/
+    text-overflow: ellipsis;
+
+    /*prevents text from wrapping to a new line*/
+    white-space: nowrap;
+
+}
+
+.navbar .nav-link {
+    /*to prevent text from wrapping into multiple rows*/
+    white-space: nowrap;
+}
+
+/* language flags*/
+.lang-flag {
+    display: inline-block; /*makes the link behave like an inline block*/
+    line-height: 0; /*removes extra vertical spacing*/
+    text-decoration: none; /*removes underline from link*/
+}
+
+/*flag image styling*/
+.lang-flag img {
+    width: 24px;
+    height: 16px;
+    object-fit: cover; /*ensures image fills the space proportionally*/
+    border-radius: 2px; /*slightly rounds the corners*/
+    transition: transform 0.15s ease, opacity 0.15s ease; /*smooth hover animation*/
+}
+
+/* hover effect for flags*/
+.lang-flag:hover img {
+    transform: scale(1.1); /*slightly enlarges the flag*/
+    opacity: 0.9; /*slightly reduces opacity for visual feedback*/
+}
+
+/* active language indicator*/
+.active-lang img {
+    outline: 2px solid white; /*adds white border to indicate active language*/
+    outline-offset: 2px; /*adds spacing between image and outline*/
+}
+
+/*navbar active link (main navigation)*/
+.navbar .nav-link.active {
+    color: #ffffff; /*ensures active link is white*/
+    font-weight: 600; /*makes it slightly bold*/
+    border-bottom: 2px solid #ffffff; /*adds underline effect*/
+}
+
+/*dropdown active item (Bootstrap default adjustment)*/
+.navbar .dropdown-item.active {
+    font-weight: 600; /*makes active dropdown item bold*/
+}
+
+/*custom dropdown active styling*/
+.dropdown-item.active {
+    background-color: transparent; /*removes default background highlight*/
+    color: #ffffff; /*keeps text white*/
+    font-weight: 600; /*bold text*/
+    text-decoration: underline; /*adds underline instead of background*/
+}
+
+/*product image on public cards*/
+.product-card-image {
+    width: 100%; /*takes full width of the card*/
+    height: 220px; /*fixed height for consistent layout*/
+    object-fit: contain; /*ensures full image is visible without cropping*/
+    border-radius: 0.375rem; /*rounded corners*/
+}
+
+/*small product thumbnail in admin table*/
+.admin-product-thumbnail {
+    width: 55px; /*fixed thumbnail width*/
+    height: 55px; /*fixed thumbnail height*/
+    object-fit: contain; /*ensures full image is visible*/
+    border-radius: 0.375rem; /*rounded corners*/
+    background-color: #f8f9fa; /*light background for empty space*/
+    border: 1px solid #dee2e6; /*light border for separation*/
+}
+
+/*service card image on the public services page*/
+.service-card-image {
+    width: 100%; /*full width of card*/
+    height: 220px; /*fixed height for consistency*/
+    object-fit: contain; /*prevents cropping*/
+    border-radius: 0.375rem; /*rounded corners*/
+}
+
+/*small service thumbnail on the admin manage services table*/
+.admin-service-thumbnail {
+    width: 55px; /*fixed width*/
+    height: 55px; /*fixed height*/
+    object-fit: contain; /*keeps full image visible*/
+    border-radius: 0.375rem; /*rounded corners*/
+    background-color: #f8f9fa; /*light background*/
+    border: 1px solid #dee2e6; /*light border*/
+}

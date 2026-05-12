@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.appointmentsReport}"></title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+        <h2 th:text="#{navigation.appointmentsReport}"></h2>
+
+        <!--flash error message, only show if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- filters section-->
+        <div class="card mb-3">
+
+            <!--filters form, it calls the same get mapping from when loading the page from the menu (no filters)-->
+            <form th:action="@{/admin/reports/appointments}" method="get">
+                <div class="card-body">
+
+                    <div class="row g-3 align-items-end">
+
+                        <!--start date-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.startDate}">Start Date</label>
+                            <input th:value="${strStartDate}" name="strStartDate" type="date" class="form-control"
+                                   min="2000-01-01"
+                                   max="2100-12-31">
+                        </div>
+
+                        <!--end date-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.endDate}">End Date</label>
+                            <input th:value="${strEndDate}" name="strEndDate" type="date" class="form-control"
+                                   min="2000-01-01"
+                                   max="2100-12-31">
+                        </div>
+
+                        <!--status-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.status}">Status</label>
+
+                            <!--it gets a list of statuses via parameter and adds it to a dropdown-->
+                            <!--name="status" so i can get the selected status on the controller-->
+                            <select class="form-select" name="status">
+                                <!--empty option indicating to choose one-->
+                                <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}" th:text="#{reports.filter.status.all}"></option>
+                                <!--for each service on the list it adds an option-->
+                                <option th:each="appointmentStatus : ${statuses}" th:value="${appointmentStatus.name}" th:text="${appointmentStatus.name}"
+                                        th:selected="${appointmentStatus.name == selectedStatus}"></option>
+                            </select>
+                        </div>
+
+                        <!--service-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.service}">Service</label>
+
+                            <!--it gets a list of services via parameter and adds it to a dropdown-->
+                            <!--name="serviceId" so i can get the selected service on the controller-->
+                            <select class="form-select" name="serviceId">
+                                <!--empty option indicating to choose one-->
+                                <option value="" th:selected="${selectedServiceId == null}" th:text="#{reports.filter.service.all}"></option>
+                                <!--for each service on the list it adds an option-->
+                                <option th:each="service : ${listServices}" th:value="${service.id}" th:text="${service.name}"
+                                        th:selected="${service.id == selectedServiceId}" ></option>
+                            </select>
+                        </div>
+
+                        <!--customer name or email-->
+                        <div class="col-md-4">
+                            <label class="form-label" th:text="#{reports.filter.customerNameOrEmail}">Customer name or email</label>
+                            <input name="customerNameOrEmail" th:value="${customerNameOrEmail}" type="text" maxlength="100" class="form-control">
+                        </div>
+
+                        <!--buttons-->
+                        <div class="col-md-4 d-flex gap-2">
+                            <!--clear filters button-->
+                            <a class="btn btn-outline-secondary" th:href="@{/admin/reports/appointments}" th:text="#{actions.clearFilters}">Clear Filters</a>
+
+                            <!--generate button, sending value true to know on the controller when the button was clicked-->
+                            <button name="btnGenerate" value="true" type="submit" class="btn btn-primary" th:text="#{actions.generate}">Generate</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!--totals section-->
+        <div th:if="${reportGenerated}" class="row row-cols-1 row-cols-lg-4 row-cols-md-2 row-cols-sm-2 g-4 mb-3">
+            <div class="col">
+                <div class="card text-bg-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="#{reports.totals.totalAppointments}">Total Appointments</h5>
+                        <h3 class="text-center card-text" th:text="${totalAppointments}"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-bg-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="#{reports.totals.cancelled}">Cancelled</h5>
+                        <h3 class="text-center card-text" th:text="${totalCancelled}"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-bg-warning h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="#{reports.totals.booked}">Booked</h5>
+                        <h3 class="text-center card-text" th:text="${totalBooked}"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-bg-success h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="#{reports.totals.completed}">Completed</h5>
+                        <h3 class="text-center card-text" th:text="${totalCompleted}"></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--only if the list is not empty will show the appointments-->
+        <div th:if="${!#lists.isEmpty(appointmentsReportList)}">
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <!--table header-->
+                    <thead class="table-dark">
+                    <tr>
+                        <th th:text="#{appointment.id}">Id</th>
+
+                        <th th:text="#{appointment.customerName}">Customer Name</th>
+                        <th th:text="#{appointment.customerEmail}">Customer Email</th>
+
+                        <th th:text="#{appointment.service}">Service</th>
+                        <th th:text="#{page.appointment.date}">Date</th>
+                        <th th:text="#{page.appointment.time}">Time</th>
+                        <th th:text="#{page.appointment.notes}">Notes</th>
+                        <th th:text="#{page.appointment.status}">Status</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <!--table rows, getting listServices from the controller-->
+                    <tr th:each="appointment : ${appointmentsReportList}">
+
+                        <td th:text="${appointment.id}"></td>
+
+                        <td th:text="${appointment.customer.fullName}"></td>
+                        <td th:text="${appointment.customer.email}"></td>
+
+                        <td th:text="${appointment.service.name}"></td>
+                        <td th:text="${#temporals.format(appointment.date, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${appointment.timeSlot}"></td>
+                        <td th:text="${appointment.notes}"></td>
+                        <td th:text="${appointment.status}"></td>
+
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>

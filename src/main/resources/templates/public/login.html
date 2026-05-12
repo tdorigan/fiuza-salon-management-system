@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.login}"></title>
+
+</head>
+<body>
+
+<!--fragment navbar-->
+<div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+<main class="container my-4">
+
+    <!--header-->
+    <div class="mb-4 text-center">
+        <h2 th:text="#{navigation.login}">Login</h2>
+    </div>
+
+    <!--flash error message, only show if exists-->
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="#{login.message.invalidEmailPassword}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!--flash logout message, only show if exists-->
+    <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="#{login.message.logout}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- the action should match .loginProcessingUrl("/public/login") from WebSecurityConfig class-->
+    <form th:action="@{/public/login}" method="post" class="card" style="max-width: 500px; margin: 0 auto;">
+
+        <div class="card-body">
+
+            <!--email-->
+            <div class="mb-3">
+                <label class="form-label" th:text="#{login.email}">Email</label>
+                <input type="email" id="email" name="email" class="form-control" maxlength="50" required autofocus>
+            </div>
+
+            <!--password-->
+            <div class="mb-3">
+                <label class="form-label" th:text="#{login.password}">Password</label>
+                <input type="password" id="password" name="password" class="form-control"  maxlength="100" required>
+            </div>
+
+            <!--submit button-->
+            <div class="mb-3 text-center">
+                <button type="submit" class="btn btn-primary" th:text="#{login.submit}">
+                    Login
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+</main>
+
+<!--fragment footer-->
+<div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+<!--fragment scripts (bootstrap)-->
+<th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>

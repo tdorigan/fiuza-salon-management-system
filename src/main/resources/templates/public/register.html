@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.register}"></title>
+
+</head>
+<body>
+
+    <!--fragment navbar-->
+    <div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+    <main class="container my-4">
+
+        <!--header-->
+        <div class="mb-4 text-center">
+            <h2 th:text="#{register.heading}"></h2>
+        </div>
+
+        <!--flash success message, only show if exists-->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="#{${message}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--flash error message, only show if exists-->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="#{${errorMessage}}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- getting registerUserForm object (dto) from the controller -->
+        <form th:action="@{/public/register}" th:object="${regiserUserForm}" method="post" class="card">
+
+            <div class="card-body">
+                <!--email-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{register.email}">Email</label>
+                    <input type="email" class="form-control" th:field="*{email}" maxlength="50" required>
+                    <!--hidden div that only shows in case of errors-->
+                    <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+
+                <!--password-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{register.password}">Password</label>
+                    <input type="password" class="form-control" th:field="*{password}" minlength="6" maxlength="100" required>
+                    <!--hidden div that only shows in case of errors-->
+                    <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+
+                <!--confirm password-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{register.confirmPassword}">Confirm Password</label>
+                    <input type="password" class="form-control" th:field="*{confirmPassword}" minlength="6" maxlength="100" required>
+                    <!--hidden div that only shows in case of errors-->
+                    <div class="text-danger" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+                </div>
+
+                <!--full name-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{register.fullName}">Full Name</label>
+                    <input type="text" class="form-control" th:field="*{fullName}" required maxlength="100">
+                    <!--hidden div that only shows in case of errors-->
+                    <div class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                </div>
+
+                <!--phone-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{register.phone}">Phone</label>
+                    <input type="text" class="form-control" th:field="*{phone}" maxlength="50">
+                    <!--hidden div that only shows in case of errors-->
+                    <div class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                </div>
+
+                <!--address-->
+                <div class="mb-3">
+                    <label class="form-label" th:text="#{register.address}">Address</label>
+                    <input type="text" class="form-control" th:field="*{address}" maxlength="100">
+                    <!--hidden div that only shows in case of errors-->
+                    <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                </div>
+
+                <!--submit button-->
+                <button type="submit" class="btn btn-primary" th:text="#{register.submit}">
+                    Create Account
+                </button>
+
+            </div>
+
+        </form>
+
+    </main>
+
+    <!--fragment footer-->
+    <div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+    <!--fragment scripts (bootstrap)-->
+    <th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>

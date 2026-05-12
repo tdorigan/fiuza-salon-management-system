@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+
+    <!--head common fragment-->
+    <th:block th:replace="~{fragments/fragment_head_common :: head_common}"></th:block>
+
+    <title th:text="#{navigation.profile}"></title>
+
+</head>
+<body>
+
+<!--fragment navbar-->
+<div th:replace="~{fragments/fragment_navbar :: fragmentNavbar}"></div>
+
+<main class="container my-4">
+
+    <!--header-->
+    <div class="mb-4 text-center">
+        <h2 th:text="#{profile.title}"></h2>
+    </div>
+
+    <!--flash success message, only show if exists-->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="#{${message}}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!--flash error message, only show if exists-->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="#{${errorMessage}}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row g-4">
+
+        <!--profile details card-->
+        <div class="col-12 col-lg-6">
+
+            <!--getting profileForm object from the controller-->
+            <form th:action="@{/profile/update}" th:object="${profileForm}" method="post" class="card h-100">
+
+                <div class="card-body">
+
+                    <!--card title-->
+                    <h5 class="card-title mb-3" th:text="#{profile.section.details}">
+                        Profile Details
+                    </h5>
+
+                    <!--email readonly-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.email}">Email</label>
+                        <input type="email" class="form-control" th:value="${email}" readonly>
+                    </div>
+
+                    <!--full name-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.fullName}">Full Name</label>
+                        <input type="text" class="form-control" th:field="*{fullName}" required maxlength="100">
+                        <!--hidden div that only shows in case of errors-->
+                        <div class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                    </div>
+
+                    <!--phone-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.phone}">Phone</label>
+                        <input type="text" class="form-control" th:field="*{phone}" maxlength="50">
+                        <!--hidden div that only shows in case of errors-->
+                        <div class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                    </div>
+
+                    <!--address-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.address}">Address</label>
+                        <input type="text" class="form-control" th:field="*{address}" maxlength="100">
+                        <!--hidden div that only shows in case of errors-->
+                        <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                    </div>
+
+                    <!--submit button-->
+                    <button type="submit" class="btn btn-primary" th:text="#{profile.save}">
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!--change password card-->
+        <div class="col-12 col-lg-6">
+
+            <!--getting changePasswordForm object from the controller-->
+            <form th:action="@{/profile/changePassword}" th:object="${changePasswordForm}" method="post" class="card h-100">
+
+                <div class="card-body">
+
+                    <!--card title-->
+                    <h5 class="card-title mb-3" th:text="#{profile.section.password}">
+                        Change Password
+                    </h5>
+
+                    <!--current password-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.currentPassword}">Current Password</label>
+                        <input type="password" class="form-control" th:field="*{currentPassword}" maxlength="100" required>
+                        <!--hidden div that only shows in case of errors-->
+                        <div class="text-danger" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></div>
+                    </div>
+
+                    <!--new password-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.newPassword}">New Password</label>
+                        <input type="password" class="form-control" th:field="*{newPassword}" minlength="6" maxlength="100" required>
+                        <!--hidden div that only shows in case of errors-->
+                        <div class="text-danger" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+                    </div>
+
+                    <!--confirm new password-->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{profile.confirmNewPassword}">Confirm New Password</label>
+                        <input type="password" class="form-control" th:field="*{confirmNewPassword}" minlength="6" maxlength="100" required>
+                        <!--hidden div that only shows in case of errors-->
+                        <div class="text-danger" th:if="${#fields.hasErrors('confirmNewPassword')}" th:errors="*{confirmNewPassword}"></div>
+                    </div>
+
+                    <!--submit button-->
+                    <button type="submit" class="btn btn-primary" th:text="#{profile.changePassword}">
+                        Change Password
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+
+</main>
+
+<!--fragment footer-->
+<div th:replace="~{fragments/fragment_footer :: fragmentFooter}"></div>
+
+<!--fragment scripts (bootstrap)-->
+<th:block th:replace="~{fragments/fragment_scripts :: bootstrap_scripts}"></th:block>
+
+</body>
+</html>
