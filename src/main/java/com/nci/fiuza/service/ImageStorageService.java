@@ -20,6 +20,10 @@ public class ImageStorageService {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
+    //image max size 5MB
+    @Value("${app.upload.max-image-size-bytes:5242880}")
+    private long maxImageSizeBytes;
+
     //defines allows image types
     private static final Set<String> ALLOWED_TYPES = Set.of(
             "image/jpeg",
@@ -33,6 +37,11 @@ public class ImageStorageService {
         //if no file selected there is nothing to save
         if (imageFile == null || imageFile.isEmpty()) {
             return null;
+        }
+
+        //validate image size
+        if (imageFile.getSize() > maxImageSizeBytes) {
+            throw new IllegalArgumentException("image.message.fileTooLarge");
         }
 
         //check allowed types

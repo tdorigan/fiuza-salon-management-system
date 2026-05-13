@@ -80,10 +80,20 @@
                     <label class="form-label" th:text="#{page.service.image}">Service Image</label>
 
                     <!--file input used to upload a service image-->
+                    <!--data-max-size receives the value from application.properties via GlobalControllerAdvice-->
+                    <!--data-error-message receives the translated error message from messages.properties-->
                     <input type="file"
                            name="imageFile"
                            accept="image/jpeg,image/png,image/webp"
-                           class="form-control">
+                           class="form-control image-upload-input"
+                           th:attr="data-max-size=${maxImageSizeBytes}, data-error-message=#{image.message.fileTooLarge}">
+
+                    <!--empty error message area used by JavaScript when the selected image is too large-->
+                    <div class="text-danger small mt-1 image-upload-error" style="display: none;"></div>
+
+                    <div class="form-text" th:text="#{image.form.help}">
+                        Maximum file size: 5MB. Accepted formats: JPG, PNG, or WEBP.
+                    </div>
 
                     <!--current image preview, only shown when the service already has an image-->
                     <div class="mt-3" th:if="${service.imageFileName != null}">
