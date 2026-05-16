@@ -69,12 +69,14 @@
                         <td th:text="${product.id}"></td>
 
                         <td>
-                            <img th:if="${product.imageFileName != null}"
-                                 th:src="@{'/uploads/products/' + ${product.imageFileName}}"
+                            <!--shows product image only when a valid Cloudflare R2 image URL exists-->
+                            <img th:if="${productImageUrlMap[product.id] != null}"
+                                 th:src="${productImageUrlMap[product.id]}"
                                  class="admin-product-thumbnail"
                                  th:alt="${product.name}">
 
-                            <i th:if="${product.imageFileName == null}"
+                            <!--shows placeholder icon when product has no image or the image is missing from R2-->
+                            <i th:if="${productImageUrlMap[product.id] == null}"
                                class="fa-regular fa-image text-muted fa-2x"></i>
                         </td>
 

@@ -34,8 +34,7 @@ public class WebSecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/webjars/**",
-                                "/uploads/**"
+                                "/webjars/**"
                         ).permitAll()
 
                         //accessible by any authenticated user, admin or customer

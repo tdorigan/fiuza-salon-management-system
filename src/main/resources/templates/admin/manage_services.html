@@ -70,14 +70,14 @@
 
                         <!--service image thumbnail-->
                         <td>
-                            <!--shows small image thumbnail if service has image-->
-                            <img th:if="${service.imageFileName != null}"
-                                 th:src="@{'/uploads/services/' + ${service.imageFileName}}"
-                                 class="admin-service-thumbnail"
+                            <!--shows service image only when a valid Cloudflare R2 image URL exists-->
+                            <img th:if="${serviceImageUrlMap[service.id] != null}"
+                                 th:src="${serviceImageUrlMap[service.id]}"
+                                 class="admin-product-thumbnail"
                                  th:alt="${service.name}">
 
-                            <!--shows placeholder icon if service has no image-->
-                            <i th:if="${service.imageFileName == null}"
+                            <!--shows placeholder icon when service has no image or the image is missing from R2-->
+                            <i th:if="${serviceImageUrlMap[service.id] == null}"
                                class="fa-regular fa-image text-muted fa-2x"></i>
                         </td>
 

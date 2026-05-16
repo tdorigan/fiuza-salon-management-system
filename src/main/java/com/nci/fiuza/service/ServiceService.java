@@ -45,73 +45,99 @@ public class ServiceService {
         return serviceRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("service.message.notFound"));
     }
 
-    //same as above method
-    //public void save(Service service) {
+    //saves a service
+    //before saving the service, this method handles service image upload/removal in Cloudflare R2
     @Transactional
     public void save(com.nci.fiuza.domain.Service service,
                      MultipartFile imageFile,
                      boolean removeImage) throws IOException {
 
-        //validate service duration, it should be in APPOINTMENT_INTERVAL_MINUTES (15) minutes interval
+        //validates service duration, it must be at least 15 minutes and follow the appointment interval
         if (service.getEstimatedTimeMinutes() == null ||
                 service.getEstimatedTimeMinutes() < BusinessHours.APPOINTMENT_INTERVAL_MINUTES ||
                 service.getEstimatedTimeMinutes() % BusinessHours.APPOINTMENT_INTERVAL_MINUTES != 0) {
+
+            //throws translated validation message key
             throw new IllegalStateException("service.message.invalidDuration");
         }
 
-        //checks if the service has an id, meaning it is an edit and not a new service
-        if (service.getId() != null) {
+        //checks if this service is being edited, because existing services already have an id
+        boolean isEdit = service.getId() != null;
 
-            //loads the existing service from the database
-            com.nci.fiuza.domain.Service existingService = get(service.getId());
+        //creates a variable to store the existing service from the database when editing
+        com.nci.fiuza.domain.Service existingService = null;
 
-            //if the remove image checkbox was selected
-            if (removeImage) {
+        //if this is an edit operation
+        if (isEdit) {
 
-                //remove the image reference from the service
-                service.setImageFileName(null);
+            //loads the current service from the database
+            existingService = get(service.getId());
+        }
 
-            //if no new image was uploaded
-            } else if (imageFile == null || imageFile.isEmpty()) {
+        //if user marked the checkbox to remove the current image
+        if (removeImage) {
 
-                //keep the previous image filename
+            //if this is an existing service and it currently has an image
+            if (isEdit && existingService.getImageFileName() != null) {
+
+                //deletes the current image from Cloudflare R2
+                imageStorageService.deleteImageFromR2(existingService.getImageFileName());
+            }
+
+            //removes the image reference from the service object
+            service.setImageFileName(null);
+
+        //if user did not mark the remove image checkbox
+        } else {
+
+            //uploads the new image to Cloudflare R2, if a new file was selected
+            String savedImageKey = imageStorageService.saveImageToR2(imageFile, "services");
+
+            //if a new image was uploaded
+            if (savedImageKey != null) {
+
+                //if this is an edit and the service already had an old image
+                if (isEdit && existingService.getImageFileName() != null) {
+
+                    //deletes the old image from Cloudflare R2 because it is being replaced
+                    imageStorageService.deleteImageFromR2(existingService.getImageFileName());
+                }
+
+                //stores the new image key in the service object
+                service.setImageFileName(savedImageKey);
+
+            //if no new image was uploaded and this is an edit
+            } else if (isEdit) {
+
+                //keeps the existing image reference from the database
                 service.setImageFileName(existingService.getImageFileName());
             }
         }
 
-        //only save a new uploaded image if the user did not choose to remove the current image
-        if (!removeImage) {
-
-            //saves the image inside uploads/services and returns the generated filename
-            String savedFileName = imageStorageService.saveImage(imageFile, "services");
-
-            //if a file was uploaded and saved
-            if (savedFileName != null) {
-
-                //stores the generated filename in the service object
-                service.setImageFileName(savedFileName);
-            }
-        }
-
-        //saves the service in the database
+        //saves the service into the database
         serviceRepo.save(service);
-
     }
 
     //delete a service
     @Transactional
     public void delete(Long id) {
 
-        //check if service exists
-        get(id);
+        //loads the service from the database, or throws an error if it does not exist
+        com.nci.fiuza.domain.Service service = get(id);
 
-        //before deleting checks if any appointments exist for that service
+        //before deleting, checks if any appointments exist for that service
         if (appointmentRepo.existsByServiceId(id)) {
+
+            //if the service is already used in appointments, do not delete the service or its image
             throw new IllegalStateException("service.message.cannotDelete");
         }
 
-        //if no appointments attached, delete
-        serviceRepo.deleteById(id);
+        //deletes the service image from Cloudflare R2, if the service has an image
+        imageStorageService.deleteImageFromR2(service.getImageFileName());
+
+        //if no appointments are attached, deletes the service from the database
+        serviceRepo.delete(service);
+
     }
 
     //toggle service active
@@ -130,6 +156,26 @@ public class ServiceService {
     //list all active services
     public List<com.nci.fiuza.domain.Service> listActive() {
         return serviceRepo.findByActiveTrue();
+    }
+
+    //builds the service image URL only if the image physically exists in Cloudflare R2
+    public String buildServiceImageUrl(com.nci.fiuza.domain.Service service) {
+
+        //if service is null, there is no image URL
+        if (service == null) {
+            return null;
+        }
+
+        //checks if the service image exists in Cloudflare R2
+        boolean imageExists = imageStorageService.r2ImageExists(service.getImageFileName());
+
+        //if the image does not exist, return null so the template shows the placeholder
+        if (!imageExists) {
+            return null;
+        }
+
+        //if the image exists, return the public Cloudflare R2 image URL
+        return imageStorageService.buildR2ImageUrl(service.getImageFileName());
     }
 
 }

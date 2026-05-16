@@ -39,18 +39,19 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
 
-                        <!--service image or placeholder-->
+                        <!--service image-->
                         <div class="text-center my-3">
 
-                            <!--shows the uploaded service image if it exists-->
-                            <img th:if="${service.imageFileName != null}"
-                                 th:src="@{'/uploads/services/' + ${service.imageFileName}}"
+                            <!--shows the service image only when a valid Cloudflare R2 image URL exists-->
+                            <img th:if="${serviceImageUrlMap[service.id] != null}"
+                                 th:src="${serviceImageUrlMap[service.id]}"
                                  class="img-fluid service-card-image"
                                  th:alt="${service.name}">
 
-                            <!--shows the placeholder icon if the service has no image-->
-                            <i th:if="${service.imageFileName == null}"
+                            <!--shows the placeholder icon when the service has no image or the image is missing from R2-->
+                            <i th:if="${serviceImageUrlMap[service.id] == null}"
                                class="fa-regular fa-image fa-10x icon-dark"></i>
+
                         </div>
 
                         <!--divide card content in lines-->

@@ -35,6 +35,9 @@
                 <!--hidden id field-->
                 <input type="hidden" th:field="*{id}" />
 
+                <!--keeps the current image reference when the form returns with validation errors-->
+                <input type="hidden" th:field="*{imageFileName}" />
+
                 <!--name-->
                 <div class="mb-3">
                     <label class="form-label" th:text="#{page.service.name}">Name</label>
@@ -101,11 +104,16 @@
                         <!--current image label-->
                         <p class="text-muted mb-1" th:text="#{page.service.currentImage}">Current image:</p>
 
-                        <!--small preview of the current image-->
-                        <img th:src="@{'/uploads/services/' + ${service.imageFileName}}"
+                        <!--shows current service image only when a valid Cloudflare R2 image URL exists-->
+                        <img th:if="${serviceImageUrl != null}"
+                             th:src="${serviceImageUrl}"
                              class="img-thumbnail"
                              style="max-width: 180px;"
                              alt="Service image">
+
+                        <!--shows placeholder icon when service has an image reference but the image is missing from R2-->
+                        <i th:if="${serviceImageUrl == null}"
+                           class="fa-regular fa-image fa-5x icon-dark"></i>
 
                         <!--remove image checkbox-->
                         <div class="form-check mt-2">

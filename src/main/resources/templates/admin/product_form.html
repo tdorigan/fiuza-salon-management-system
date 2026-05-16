@@ -35,6 +35,9 @@
                 <!--hidden id field-->
                 <input type="hidden" th:field="*{id}" />
 
+                <!--keeps the current image reference when the form returns with validation errors-->
+                <input type="hidden" th:field="*{imageFileName}" />
+
                 <!--name-->
                 <div class="mb-3">
                     <label class="form-label" th:text="#{page.product.name}">Name</label>
@@ -87,10 +90,16 @@
 
                         <p class="text-muted mb-1" th:text="#{page.product.currentImage}">Current image:</p>
 
-                        <img th:src="@{'/uploads/products/' + ${product.imageFileName}}"
+                        <!--shows current product image only when a valid Cloudflare R2 image URL exists-->
+                        <img th:if="${productImageUrl != null}"
+                             th:src="${productImageUrl}"
                              class="img-thumbnail"
                              style="max-width: 180px;"
                              alt="Product image">
+
+                        <!--shows placeholder icon when product has an image reference but the image is missing from R2-->
+                        <i th:if="${productImageUrl == null}"
+                           class="fa-regular fa-image fa-5x icon-dark"></i>
 
                         <div class="form-check mt-2">
                             <input class="form-check-input" type="checkbox" name="removeImage" id="removeImage">

@@ -45,47 +45,64 @@ public class ProductService {
     }
 
     //save a product
-    //before saving the product i need to handle the images, save them on the folder and save just the file name on the db
+    //before saving the product, this method handles product image upload/removal in Cloudflare R2
     @Transactional
     public void save(Product product, MultipartFile imageFile, boolean removeImage) throws IOException {
 
-        //if the product already has an id, this is an edit, not a new product
-        if (product.getId() != null) {
+        //checks if this product is being edited, because existing products already have an id
+        boolean isEdit = product.getId() != null;
 
-            //loads the current product from the db
-            Product existingProduct = get(product.getId());
+        //creates a variable to hold the existing product from the database when editing
+        Product existingProduct = null;
 
-            //if user marked checkbox to remove current image
-            if (removeImage) {
+        //if this is an edit operation
+        if (isEdit) {
 
-                //set image file name as null
-                product.setImageFileName(null);
+            //loads the current product from the database
+            existingProduct = get(product.getId());
+        }
 
-            //if user did not choose a new image during edit
-            } else if (imageFile == null || imageFile.isEmpty()) {
+        //if user marked the checkbox to remove the current image
+        if (removeImage) {
 
-                //keep the old image filename instead of replacing it with null
+            //if this is an existing product and it currently has an image
+            if (isEdit && existingProduct.getImageFileName() != null) {
+
+                //deletes the current image from Cloudflare R2
+                imageStorageService.deleteImageFromR2(existingProduct.getImageFileName());
+            }
+
+            //removes the image reference from the product object
+            product.setImageFileName(null);
+
+        //if user did not mark the remove image checkbox
+        } else {
+
+            //uploads the new image to Cloudflare R2, if a new file was selected
+            String savedImageKey = imageStorageService.saveImageToR2(imageFile, "products");
+
+            //if a new image was uploaded
+            if (savedImageKey != null) {
+
+                //if this is an edit and the product already had an old image
+                if (isEdit && existingProduct.getImageFileName() != null) {
+
+                    //deletes the old image from Cloudflare R2 because it is being replaced
+                    imageStorageService.deleteImageFromR2(existingProduct.getImageFileName());
+                }
+
+                //stores the new image key in the product object
+                product.setImageFileName(savedImageKey);
+
+                //if no new image was uploaded and this is an edit
+            } else if (isEdit) {
+
+                //keeps the existing image reference from the database
                 product.setImageFileName(existingProduct.getImageFileName());
-
             }
-
         }
 
-        //only saves the uploaded image if the checkbox remove current image is not checked
-        if (!removeImage) {
-
-            //saves the uploaded image in uploads/products and returns the generated filename
-            String savedFileName = imageStorageService.saveImage(imageFile, "products");
-
-            //if an image was actually uploaded
-            if (savedFileName != null) {
-                //stores the generated filename in the product object
-                product.setImageFileName(savedFileName);
-            }
-
-        }
-
-        //save product into the db, including the image filename
+        //saves the product into the database
         productRepo.save(product);
 
     }
@@ -108,16 +125,41 @@ public class ProductService {
     @Transactional
     public void delete(Long id) {
 
-        //check if product exists
-        get(id);
+        //loads the product from the database, or throws an error if it does not exist
+        Product product = get(id);
 
-        //before deleting checks if any order items exist for that product
+        //before deleting, checks if any order items exist for that product
         if (orderItemRepo.existsByProductId(id)) {
+
+            //if the product is already used in orders, do not delete the product or its image
             throw new IllegalStateException("product.message.cannotDelete");
         }
 
-        //if no order items attached, delete
-        productRepo.deleteById(id);
+        //deletes the product image from Cloudflare R2, if the product has an image
+        imageStorageService.deleteImageFromR2(product.getImageFileName());
+
+        //if no order items are attached, deletes the product from the database
+        productRepo.delete(product);
+
+    }
+
+    //builds the product image URL only if the image physically exists in Cloudflare R2
+    public String buildProductImageUrl(Product product) {
+
+        //if product is null, there is no image URL
+        if (product == null) {
+            return null;
+        }
+
+        //checks if the product image exists in Cloudflare R2
+        boolean imageExists = imageStorageService.r2ImageExists(product.getImageFileName());
+
+        if (!imageExists) {
+            return null;
+        }
+
+        //if the image exists, return the public Cloudflare R2 image URL
+        return imageStorageService.buildR2ImageUrl(product.getImageFileName());
 
     }
 

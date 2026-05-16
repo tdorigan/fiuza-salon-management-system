@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 //controller for mapping the requests related to services in admin portal
 @Controller
 public class AdminServiceController {
@@ -30,9 +34,29 @@ public class AdminServiceController {
     @GetMapping("/admin/manage_services")
     public String showManageServices(Model model){
 
-        //getting the list of services from ServiceService and passing it into a parameter
-        model.addAttribute("listServices", serviceService.listAll());
+        //gets all services from the database
+        List<Service> services = serviceService.listAll();
 
+        //creates a map where key = service id and value = service image URL
+        Map<Long, String> serviceImageUrlMap = new HashMap<>();
+
+        //loops through all services to prepare image URLs
+        for (Service service : services) {
+
+            //builds the Cloudflare R2 image URL only if the image exists
+            String imageUrl = serviceService.buildServiceImageUrl(service);
+
+            //stores the image URL in the map using the service id
+            serviceImageUrlMap.put(service.getId(), imageUrl);
+        }
+
+        //sends the service list to the page
+        model.addAttribute("listServices", services);
+
+        //sends the image URL map to the page
+        model.addAttribute("serviceImageUrlMap", serviceImageUrlMap);
+
+        //returns the manage services template
         return "admin/manage_services";
 
     }
@@ -40,6 +64,9 @@ public class AdminServiceController {
     //create new service
     @GetMapping("/admin/services/new")
     public String newService(Model model){
+
+        //new service has no current image, so image URL is null
+        model.addAttribute("serviceImageUrl", null);
 
         //passing a service object as parameter
         model.addAttribute("service", new Service());
@@ -59,8 +86,14 @@ public class AdminServiceController {
     public String editService(@PathVariable Long id, Model model, RedirectAttributes ra) { //getting the id by parameter via url
 
         try{
-            //passing the service entity via parameter so it can be loaded in the form
-            model.addAttribute("service", serviceService.get(id));
+            //gets the service from the database
+            Service service = serviceService.get(id);
+
+            //sends the service to the form
+            model.addAttribute("service", service);
+
+            //sends the service image URL to the form
+            model.addAttribute("serviceImageUrl", serviceService.buildServiceImageUrl(service));
 
             //passing page title as parameter to change from new/edit
             model.addAttribute("pageTitle", "service.form.edit");
@@ -103,6 +136,9 @@ public class AdminServiceController {
             //get the service durations options from the utility class and pass to the view
             model.addAttribute("durationOptions", DurationUtils.getServiceDurationOptions());
 
+            //sends the service image URL again when returning to the form
+            model.addAttribute("serviceImageUrl", serviceService.buildServiceImageUrl(service));
+
             //and return to the form
             return "admin/service_form";
         }
@@ -128,6 +164,9 @@ public class AdminServiceController {
 
             //sends the error message back to the form
             model.addAttribute("errorMessage", e.getMessage());
+
+            //sends the service image URL again when returning to the form
+            model.addAttribute("serviceImageUrl", serviceService.buildServiceImageUrl(service));
 
             //returns to the service form
             return "admin/service_form";

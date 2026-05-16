@@ -14,6 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 //controller for mapping the requests related to product in admin portal
 @Controller
@@ -31,9 +34,30 @@ public class AdminProductController {
     @GetMapping("/admin/manage_products")
     public String showManageProducts(Model model){
 
-        //getting the list of products from ProductService and passing it into a parameter
-        model.addAttribute("listProducts", productService.listAll());
+        //gets all products from the database
+        List<Product> products = productService.listAll();
 
+        //creates a map where key = product id and value = product image URL
+        Map<Long, String> productImageUrlMap = new HashMap<>();
+
+        //loops through all products to prepare image URLs
+        for (Product product : products) {
+
+            //builds the Cloudflare R2 image URL only if the image exists
+            String imageUrl = productService.buildProductImageUrl(product);
+
+            //stores the image URL in the map using the product id
+            productImageUrlMap.put(product.getId(), imageUrl);
+
+        }
+
+        //sends the product list to the page
+        model.addAttribute("listProducts", products);
+
+        //sends the image URL map to the page
+        model.addAttribute("productImageUrlMap", productImageUrlMap);
+
+        //returns the manage products template
         return "admin/manage_products";
 
     }
@@ -44,6 +68,9 @@ public class AdminProductController {
 
         //passing a product object as parameter
         model.addAttribute("product", new Product());
+
+        //new product has no current image, so image URL is null
+        model.addAttribute("productImageUrl", null);
 
         //passing page title as parameter to change from new/edit
         model.addAttribute("pageTitle", "product.form.new");
@@ -57,8 +84,15 @@ public class AdminProductController {
     public String editProduct(@PathVariable Long id, Model model, RedirectAttributes ra) { //getting the id by parameter via url
 
         try{
-            //passing the product entity via parameter so it can be loaded in the form
-            model.addAttribute("product", productService.get(id));
+
+            //gets the product from the database
+            Product product = productService.get(id);
+
+            //sends the product to the form
+            model.addAttribute("product", product);
+
+            //sends the product image URL to the form
+            model.addAttribute("productImageUrl", productService.buildProductImageUrl(product));
 
             //passing page title as parameter to change from new/edit
             model.addAttribute("pageTitle", "product.form.edit");
@@ -95,6 +129,9 @@ public class AdminProductController {
                 model.addAttribute("pageTitle", "product.form.edit");
             }
 
+            //sends the product image URL again when returning to the form
+            model.addAttribute("productImageUrl", productService.buildProductImageUrl(product));
+
             //and return to the form
             return "admin/product_form";
         }
@@ -113,6 +150,9 @@ public class AdminProductController {
 
             //set error message
             model.addAttribute("errorMessage", e.getMessage());
+
+            //sends the product image URL again when returning to the form
+            model.addAttribute("productImageUrl", productService.buildProductImageUrl(product));
 
             //and return to the form
             return "admin/product_form";

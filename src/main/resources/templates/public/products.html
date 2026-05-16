@@ -53,14 +53,17 @@
 
                         <!--product image-->
                         <div class="text-center my-3">
-                            <img th:if="${product.imageFileName != null}"
-                                 th:src="@{'/uploads/products/' + ${product.imageFileName}}"
+
+                            <!--shows the product image only when a valid Cloudflare R2 image URL exists-->
+                            <img th:if="${productImageUrlMap[product.id] != null}"
+                                 th:src="${productImageUrlMap[product.id]}"
                                  class="img-fluid product-card-image"
                                  th:alt="${product.name}">
 
-                            <!--shows placeholder icon if product not available-->
-                            <i th:if="${product.imageFileName == null}"
+                            <!--shows the placeholder icon when the product has no image or the image is missing from R2-->
+                            <i th:if="${productImageUrlMap[product.id] == null}"
                                class="fa-regular fa-image fa-10x icon-dark"></i>
+
                         </div>
 
                         <!--divide card content in lines-->
