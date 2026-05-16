@@ -1,78 +1,51 @@
 # Fiuza Salon Website and Management System
 
-A full-stack web application developed using Spring Boot, Thymeleaf, and MySQL to support the operations of a hair salon business.
+## Overview
+A full-stack web application for managing a hair salon’s operations, including appointments, customers, products, and orders. Built with Java Spring Boot following the MVC pattern and deployed to production.
 
----
+## Live Demo
+https://fiuza-salon-management-system-production.up.railway.app/
+
+Public pages are accessible without login.  
+Admin access is not shared to protect the demo environment.
 
 ## Features
 
-### Public Website
-- View salon information, services, and products
-- Portfolio page
+**Public Website**
+- Services, products, and portfolio
 - User registration and login
-- Language switch (English / Portuguese)
+- English / Portuguese support
 
-### Customer Area
-- Book appointments with business hours validation
-- View and cancel appointments
-- Shopping cart
-- Place orders and view order history
+**Customer Area**
+- Book appointments with availability rules
+- Cart and order management
 - Profile management
 
-### Administrator Portal
-- Manage services and products (CRUD + image upload)
-- Manage customers
-- Manage appointments
-- Manage orders
-- Reports with filters
+**Admin Portal**
+- Manage services and products (CRUD)
+- Image upload (Cloudflare R2)
+- Manage appointments, orders, customers
+- Basic reports
 
----
+## Tech Stack
+- Java 21, Spring Boot, Spring Security, Spring Data JPA
+- Thymeleaf, Bootstrap
+- MySQL
+- Railway (hosting), Cloudflare R2 (storage)
 
-## Technologies Used
+## Architecture
+Layered MVC:
+- Controllers (routing)
+- Services (business logic)
+- Repositories (data access)
+- Views (Thymeleaf SSR)
 
-- Java, Spring Boot, Spring MVC, Spring Security
-- Thymeleaf, HTML, CSS, JavaScript, Bootstrap
-- MySQL, Hibernate / JPA
-- Maven
+## Running Locally
+Requires:
+- MySQL database
+- Environment variables for DB and R2 storage
 
----
-
-## How to Run Locally
-
-1. Clone repository:
-   git clone https://github.com/tdorigan/fiuza-salon-management-system.git
-
-2. Set environment variable:
-   SPRING_DATASOURCE_PASSWORD=your_password
-
-3. Create database:
-   CREATE DATABASE fiuza_db;
-
-4. Run:
-   mvn spring-boot:run
-
-5. Access:
-   http://localhost:8080
-
----
-
-## Demo Accounts
-
-Administrator is automatically created when the application starts:
-
-Email: admin@fiuza.com  
-Password: admin
-
-Customers can register via the application.
-
----
-
-## Live Demo
-
-(To be added after deployment)
-
----
+Production credentials are not included.
 
 ## Author
-
 Tiago Dorigan
